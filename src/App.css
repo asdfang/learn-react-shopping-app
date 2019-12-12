@@ -20,3 +20,9 @@
 .App-link {
   color: #09d3ac;
 }
+
+/* CART */
+.cart-button {
+  margin: 12px 12px 0px 0px;
+  float: right;
+}

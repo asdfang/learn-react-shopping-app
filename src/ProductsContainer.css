@@ -1,3 +1,20 @@
 .ProductsContainer {
-  padding: 24px 96px 24px 96px;
+  margin: 24px 1% 5% 1%;
+}
+
+/* maybe shouldn't be here: */
+.cart-button {
+  margin: 12px 12px 0px 0px;
+  float: right;
+}
+
+.size-buttons {
+  position: relative;
+  top: 24px;
+  float: right;
+  z-index: 1;
+}
+
+.add-button {
+  z-index: 1;
 }
