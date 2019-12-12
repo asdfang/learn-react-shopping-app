@@ -6,7 +6,7 @@ import './ProductsContainer.css';
 
 const sizes = ['S', 'M', 'L', 'XL'];
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ cartOpenState, cartItemsState, product }) => {
   const src = "data/products/" + product.sku + "_1.jpg";
   return (
     <Card>
@@ -19,7 +19,15 @@ const ProductCard = ({ product }) => {
         <Title size="5">{product.title}</Title>
         <Title subtitle size="6">{product.description || 'Description N/A'}</Title>
         <Title subtitle size="5">${product.price.toFixed(2)}</Title>
-        <Button className="add-button" color="dark">Add to Cart</Button>
+        <Button className="add-button" color="dark" onClick={ () => {
+          const newCartItems = [];
+          cartItemsState.cartItems.map(oldProd =>
+            product.sku === oldProd.sku ? newCartItems.push({...oldProd, count: oldProd.count+1}) :
+                                          newCartItems.push({...oldProd})
+          );
+          cartItemsState.setCartItems(newCartItems);
+          cartOpenState.setCartOpen(true);
+        }}>Add to Cart</Button>
       </Card.Content>
       <Level>
   
@@ -28,11 +36,11 @@ const ProductCard = ({ product }) => {
   );
 };
 
-const ProductsContainer = ({ products }) => (
+const ProductsContainer = ({ cartOpenState, cartItemsState, products }) => (
   <Column.Group multiline className="ProductsContainer">
     {products.map(product =>
       <Column key={product.sku} size="one-quarter">
-        <ProductCard product={product} />
+        <ProductCard cartOpenState={cartOpenState} cartItemsState={cartItemsState} product={product} />
       </Column>)}
   </Column.Group>
 );
@@ -41,7 +49,7 @@ const findProduct = (sku, products) => {
   return products.filter(p => p.sku === sku)[0];
 };
 
-const CartCard = ({ product, products }) => {
+const CartCard = ({ cartItemsState, product, products }) => {
   const src = "data/products/" + product.sku + "_2.jpg";
   const productInfo = findProduct(product.sku, products);
   return (
@@ -56,24 +64,31 @@ const CartCard = ({ product, products }) => {
       <Card.Content>
         { productInfo.title } <br />
         Quantity: { product.count } <br />
-        Total cost:  ${ (productInfo.price*product.count).toFixed(2) }
+        Total cost:  ${ (productInfo.price*product.count).toFixed(2) } <br />
+        <Button color="dark" onClick={ () => {
+          const newCartItems = [];
+          cartItemsState.cartItems.map(oldProd =>
+            product.sku === oldProd.sku ? newCartItems.push({...oldProd, count: 0}) :
+                                          newCartItems.push({...oldProd}));
+          cartItemsState.setCartItems(newCartItems);
+        }}>Remove from Cart</Button>
       </Card.Content>
     </Card>
   )
 };
 
-const Cart = ({ cartState, products }) => {
-  const productsToDisplay = cartState.cartItems.filter(product => product.count > 0);
+const Cart = ({ cartItemsState, products }) => {
+  const productsToDisplay = cartItemsState.cartItems.filter(product => product.count > 0);
   console.log(productsToDisplay);
   return (
      <div>
-     { productsToDisplay.map(product => <CartCard key={product.sku} product={product}
-                                                  products={products} />) }
+     { productsToDisplay.map(product => <CartCard key={product.sku} cartItemsState={cartItemsState}
+                                                  product={product} products={products} />) }
     </div>
   )
 }
 
-const CartContainer = ({ cartState, products }) => {
+const CartContainer = ({ cartOpenState, cartItemsState, products }) => {
   const cartStyle = {
     sidebar: {
       background: "#222222",
@@ -82,16 +97,16 @@ const CartContainer = ({ cartState, products }) => {
       width: 400,
     },
   };
-  const [cartOpen, setCartOpen] = useState(false);
+  
   return (
-  <Sidebar sidebar={<Cart cartState={cartState} products={products}/>}
+  <Sidebar sidebar={<Cart cartItemsState={cartItemsState} products={products}/>}
            pullRight={true}
-           open={cartOpen}
-           onSetOpen={setCartOpen}
+           open={cartOpenState.cartOpen}
+           onSetOpen={cartOpenState.setCartOpen}
            sidebarClassName={"cart"}
            styles={cartStyle}>
     <Button className="cart-button" color="black" size="large"
-            onClick={() => setCartOpen(true)}>Cart</Button>
+            onClick={() => cartOpenState.setCartOpen(true)}>Cart</Button>
   </Sidebar>);
 };
 
@@ -109,6 +124,7 @@ const SizeButtons = () => (
 const App = () => {
   const [data, setData] = useState({});
   const [cartItems, setCartItems] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const products = Object.values(data);
   useEffect(() => {
     const fetchProducts = async () => {
@@ -131,8 +147,10 @@ const App = () => {
   return (
     <Column.Group>
       <Column size={3}><SizeButtons /></Column>
-      <Column size={8}><ProductsContainer cartState={{cartItems, setCartItems}} products={products}/></Column>
-      <Column size={1}><CartContainer cartState={{cartItems, setCartItems}} products={products}/></Column>
+      <Column size={8}><ProductsContainer cartOpenState={{cartOpen, setCartOpen}}
+        cartItemsState={{cartItems, setCartItems}} products={products}/></Column>
+      <Column size={1}><CartContainer cartOpenState={{cartOpen, setCartOpen}}
+        cartItemsState={{cartItems, setCartItems}} products={products}/></Column>
     </Column.Group>
   );
 }
