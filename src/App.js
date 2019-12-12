@@ -68,10 +68,10 @@ const CartCard = ({ cartItemsState, product, products }) => {
         <Button color="dark" onClick={ () => {
           const newCartItems = [];
           cartItemsState.cartItems.map(oldProd =>
-            product.sku === oldProd.sku ? newCartItems.push({...oldProd, count: 0}) :
+            product.sku === oldProd.sku ? newCartItems.push({...oldProd, count: oldProd.count-1}) :
                                           newCartItems.push({...oldProd}));
           cartItemsState.setCartItems(newCartItems);
-        }}>Remove from Cart</Button>
+        }}>Remove One</Button>
       </Card.Content>
     </Card>
   )
@@ -137,8 +137,6 @@ const App = () => {
           "sku": product["sku"],
           "count": 0 });
       });
-      initialCart[0].count = 1;
-      initialCart[1].count = 2;
       setCartItems(initialCart);
     };
     fetchProducts();
